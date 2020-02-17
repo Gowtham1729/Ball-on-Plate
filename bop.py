@@ -4,16 +4,18 @@ import serial
 
 ard = serial.Serial('/dev/ttyACM0', 9600)
 print(ard.name)
-cap = cv2.VideoCapture('http://10.7.3.148:4747/video')
+cap = cv2.VideoCapture('http://10.7.7.63:4747/video')
 
 x = 640
 y = 480
 
 l, b = 190, 190
 # b = 200
+mid_x, mid_y = 369, 261
 
-p1 = (int(x / 2 - l), int(y / 2 - b))
-p2 = (int(x / 2 + l), int(y / 2 + b))
+
+p1 = (int(mid_x - l), int(mid_y - b))
+p2 = (int(mid_x + l), int(mid_y + b))
 path = []
 
 while True:
@@ -26,7 +28,8 @@ while True:
                                         , cv2.HOUGH_GRADIENT, 1, 20, param1=50, param2=30,
                                         minRadius=25, maxRadius=30)
 
-    max_r, max_a, max_b = 0, 320, 240
+    # cv2.circle(frame, (mid_x, mid_y), 3, (255, 255, 0), 3)
+    max_r, max_a, max_b = 0, 999, 999
 
     if detected_circles is not None:
         detected_circles = np.uint16(np.around(detected_circles))
@@ -38,19 +41,21 @@ while True:
                     max_a = a
                     max_b = b
                 cv2.circle(frame, (a, b), r, (0, 255, 0), 2)
-    path.append((max_a, max_b))
-    string = str(max_a) + ':' + str(max_b) + ':'
+    # if max_r != 0:
+    #     path.append((max_a, max_b))
+    string = str(max_a) + ':' + str(max_b) + '$'
     ard.write(string.encode())
     print("Circle: radius - ", max_r, "Center - ", (max_a, max_b))
     print("--------------------------------------------")
 
-    cv2.rectangle(frame, p1, p2, (255, 0, 0), 1)
+    # cv2.rectangle(frame, p1, p2, (255, 0, 0), 1)
 
-    if len(path) > 60:
-        path = []
-    for i in path:
-        cv2.circle(frame, i, 1, (0, 0, 255), 2)
-    cv2.line(frame, (max_a, max_b), (320, 240), (0, 255, 255), 2)
+    # if len(path) > 60:
+    #     path = []
+    # for i in path:
+    #     cv2.circle(frame, i, 1, (0, 0, 255), 2)
+    # if max_r != 0:
+    #     cv2.line(frame, (max_a, max_b), (mid_x, mid_y), (0, 255, 255), 2)
 
     cv2.imshow('frame', frame)
 
