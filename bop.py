@@ -1,7 +1,10 @@
 import numpy as np
 import cv2
+import serial
 
-cap = cv2.VideoCapture('http://10.7.7.63:4747/video')
+ard = serial.Serial('/dev/ttyACM0', 9600)
+print(ard.name)
+cap = cv2.VideoCapture('http://10.7.3.148:4747/video')
 
 x = 640
 y = 480
@@ -19,7 +22,8 @@ while True:
 
     # Our operations on the frame come here
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    detected_circles = cv2.HoughCircles(cv2.blur(gray, (3, 3)), cv2.HOUGH_GRADIENT, 1, 20, param1=50, param2=30,
+    detected_circles = cv2.HoughCircles(cv2.blur(gray, (3, 3))
+                                        , cv2.HOUGH_GRADIENT, 1, 20, param1=50, param2=30,
                                         minRadius=25, maxRadius=30)
 
     max_r, max_a, max_b = 0, 320, 240
@@ -35,16 +39,21 @@ while True:
                     max_b = b
                 cv2.circle(frame, (a, b), r, (0, 255, 0), 2)
     path.append((max_a, max_b))
+    string = str(max_a) + ':' + str(max_b) + ':'
+    ard.write(string.encode())
     print("Circle: radius - ", max_r, "Center - ", (max_a, max_b))
     print("--------------------------------------------")
 
-    # Display the resulting frame
     cv2.rectangle(frame, p1, p2, (255, 0, 0), 1)
-    if len(path) > 80:
+
+    if len(path) > 60:
         path = []
     for i in path:
         cv2.circle(frame, i, 1, (0, 0, 255), 2)
+    cv2.line(frame, (max_a, max_b), (320, 240), (0, 255, 255), 2)
+
     cv2.imshow('frame', frame)
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
