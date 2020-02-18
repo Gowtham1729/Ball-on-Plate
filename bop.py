@@ -2,18 +2,21 @@ import numpy as np
 import cv2
 import serial
 
-ard = serial.Serial('/dev/ttyACM0', 9600)
+VIDEO_URL = 'http://10.7.7.63:4747/video'
+PORT_NO = '/dev/ttyACM0'
 
-cap = cv2.VideoCapture('http://10.7.7.63:4747/video')
+ard = serial.Serial(PORT_NO, 9600)
+cap = cv2.VideoCapture(VIDEO_URL)
+
 x, y = (640, 480)
 l, b = (190, 190)
-
 mid_x, mid_y = (369, 261)
 
 p1 = (int(mid_x - l), int(mid_y - b))
 p2 = (int(mid_x + l), int(mid_y + b))
 
 path = []
+
 while True:
 
     ret, frame = cap.read()
@@ -34,7 +37,6 @@ while True:
                     max_b = b
                 cv2.circle(frame, (a, b), r, (0, 255, 0), 2)
 
-    # write the position of detected circle to the arduino
     pos = str(max_a) + ':' + str(max_b) + '$'
     ard.write(pos.encode())
 
@@ -42,7 +44,6 @@ while True:
     print("--------------------------------------------")
 
     # cv2.rectangle(frame, p1, p2, (255, 0, 0), 1)  # plot the plate rectangle
-
     # cv2.circle(frame, (mid_x, mid_y), 3, (255, 255, 0), 3)  # show center point of the rectangle
     # trace the path
     # if max_r != 0:

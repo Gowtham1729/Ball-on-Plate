@@ -2,12 +2,14 @@ import numpy as np
 import cv2
 import serial
 
-ard = serial.Serial('/dev/ttyACM0', 9600)
+VIDEO_URL = 'http://10.7.7.63:4747/video'
+PORT_NO = '/dev/ttyACM0'
 
-cap = cv2.VideoCapture('http://10.7.7.63:4747/video')
+ard = serial.Serial(PORT_NO, 9600)
+cap = cv2.VideoCapture(VIDEO_URL)
+
 x, y = (640, 480)
 l, b = (190, 190)
-
 mid_x, mid_y = (369, 261)
 
 p1 = (int(mid_x - l), int(mid_y - b))
