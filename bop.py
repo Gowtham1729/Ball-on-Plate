@@ -3,32 +3,24 @@ import cv2
 import serial
 
 ard = serial.Serial('/dev/ttyACM0', 9600)
-print(ard.name)
+
 cap = cv2.VideoCapture('http://10.7.7.63:4747/video')
+x, y = (640, 480)
+l, b = (190, 190)
 
-x = 640
-y = 480
-
-l, b = 190, 190
-# b = 200
-mid_x, mid_y = 369, 261
-
+mid_x, mid_y = (369, 261)
 
 p1 = (int(mid_x - l), int(mid_y - b))
 p2 = (int(mid_x + l), int(mid_y + b))
+
 path = []
-
 while True:
-    # Capture frame-by-frame
-    ret, frame = cap.read()
 
-    # Our operations on the frame come here
+    ret, frame = cap.read()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    detected_circles = cv2.HoughCircles(cv2.blur(gray, (3, 3))
-                                        , cv2.HOUGH_GRADIENT, 1, 20, param1=50, param2=30,
+    detected_circles = cv2.HoughCircles(cv2.blur(gray, (3, 3)), cv2.HOUGH_GRADIENT, 1, 20, param1=50, param2=30,
                                         minRadius=25, maxRadius=30)
 
-    # cv2.circle(frame, (mid_x, mid_y), 3, (255, 255, 0), 3)
     max_r, max_a, max_b = 0, 999, 999
 
     if detected_circles is not None:
@@ -41,19 +33,26 @@ while True:
                     max_a = a
                     max_b = b
                 cv2.circle(frame, (a, b), r, (0, 255, 0), 2)
-    # if max_r != 0:
-    #     path.append((max_a, max_b))
-    string = str(max_a) + ':' + str(max_b) + '$'
-    ard.write(string.encode())
-    print("Circle: radius - ", max_r, "Center - ", (max_a, max_b))
+
+    # write the position of detected circle to the arduino
+    pos = str(max_a) + ':' + str(max_b) + '$'
+    ard.write(pos.encode())
+
+    print(f"Center - {(max_a, max_b)}, Radius - {max_r}")
     print("--------------------------------------------")
 
-    # cv2.rectangle(frame, p1, p2, (255, 0, 0), 1)
+    # cv2.rectangle(frame, p1, p2, (255, 0, 0), 1)  # plot the plate rectangle
 
-    # if len(path) > 60:
+    # cv2.circle(frame, (mid_x, mid_y), 3, (255, 255, 0), 3)  # show center point of the rectangle
+    # trace the path
+    # if max_r != 0:
+    #     path.append((max_a, max_b))
+    # if len(path) > 100:
     #     path = []
     # for i in path:
     #     cv2.circle(frame, i, 1, (0, 0, 255), 2)
+
+    # plot a line from the center
     # if max_r != 0:
     #     cv2.line(frame, (max_a, max_b), (mid_x, mid_y), (0, 255, 255), 2)
 
@@ -62,42 +61,5 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-#
-# color = np.uint8([[[0, 255, 0]]])
-# hsv_color = cv2.cvtColor(color, cv2.COLOR_BGR2HSV)
-# lower_col = np.array([hsv_color[0][0][0] - 10, 10, 10])
-# upper_col = np.array([hsv_color[0][0][0] + 10, 255, 255])
-#
-# while True:
-#     # Capture frame-by-frame
-#     ret, frame = cap.read()
-#
-#     # Our operations on the frame come here
-#     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-#     # mask = cv2.inRange(hsv, lower_col, upper_col)
-#     mask = cv2.inRange(hsv, np.array([0, 0, 212]), np.array([131, 255, 255]))
-#
-#     # Display the resulting frame
-#     cv2.rectangle(frame, p1, p2, (255, 0, 0), 1)
-#     center_y, center_x = np.nonzero(mask)
-#     if len(center_x) < 200:
-#         center = (320, 640)
-#     else:
-#         center = int(np.mean(center_x)), int(np.mean(center_y))
-#     print(center)
-#     path.append(center)
-#     cv2.circle(frame, center, 5, (0, 0, 0), 5)
-#     cv2.circle(mask, center, 5, (0, 0, 0), 5)
-#
-#     for p in path:
-#         cv2.circle(frame, p, 1, (0, 0, 255), 2)
-#
-#     cv2.imshow('frame', frame)
-#     cv2.imshow('mask', cv2.blur(mask, (5, 5)))
-#
-#     if cv2.waitKey(1) & 0xFF == ord('q'):
-#         break
-
-# When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
